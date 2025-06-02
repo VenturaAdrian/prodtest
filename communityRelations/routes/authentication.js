@@ -1,6 +1,8 @@
 var express = require('express');
+var bcrypt = require('bcrypt');
 const router = express.Router();
 var Sequelize = require('sequelize');
+const moment = require('moment');
 require('dotenv').config();
 
   var knex = require("knex")({
@@ -56,31 +58,36 @@ require('dotenv').config();
 
 router.get('/login', async function (req, res, next) {
   try {
-    const user_name = req.query.user_name; // use query for GET requests
 
     const user = await Users.findAll({
       where: {
-        user_name: user_name
+        user_name: req.query.user_name
       }
+      
     });
 
-    if (!user || user.length === 0) {
+      if (!user || user.length === 0) {
       return res.status(404).json({ msg: 'User not found' });
     }
+    
+    const match = await bcrypt.compare(req.query.password, user[0].pass_wrd)
 
-    console.log("The username: ", user[0].user_name);
+    if(!match){
+      console.log('mali password ')
+    }
+    console.log("The username: ", user);
     console.log("First Name: ", user[0].emp_firstname);
     console.log("Last Name: ", user[0].emp_lastname);
     console.log("Emp Role: ", user[0].emp_role);
-    // Avoid logging the password!
-    // console.log("The PWD: ", user[0].pass_wrd);
+    console.log("The PWD: ",user[0].pass_wrd);
+
 
     const result = {
       user_name: user[0].user_name,
       first_name: user[0].emp_firstname,
       last_name: user[0].emp_lastname,
       role: user[0].emp_role,
-      // password: user[0].pass_wrd, // don't send password!
+    
     };
 
     res.json(result);
@@ -90,6 +97,40 @@ router.get('/login', async function (req, res, next) {
   }
 });
 
+
+  router.post('/register', async function (req, res, next){
+
+    var currentTimestamp = moment(Date.now()).format('YYYY-MM-DD'); //get current date
+
+console.log(req)
+    const {
+    emp_firstname,
+    emp_lastname,
+    user_name,
+    pass_wrd,
+    emp_role
+  } = req.body;
+try{
+    await knex('users_master'). insert({
+      emp_firstname: emp_firstname,
+      emp_lastname: emp_lastname,
+      user_name: user_name,
+      pass_wrd:pass_wrd,
+      emp_role: emp_role,
+      created_by: emp_firstname,
+      created_at: currentTimestamp,
+      updated_by: '',
+      updated_date: '',
+      is_active: 0
+      
+    });
+    console.log('User registered');
+
+  }catch(err){
+      console.error("Registration error:", err); // show actual error
+  res.status(500).json({ error: "Registration failed", details: err.message });
+  }
+});
 
   router.get('/users', async function (req, res, next) {
       // view all users
