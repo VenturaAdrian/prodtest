@@ -10,7 +10,8 @@ require('dotenv').config();
 
 // //Routes
 var indexRouter = require('./routes/index'); //predefin
-var usersRouter = require('./routes/authentication');//predefined
+var authRouter = require('./routes/authentication');//predefined
+var requestRouter = require('./routes/request');
 // var headerMasterRouter = require('./routes/headermaster');
 // var authRouter = require('./routes/authentication');
 // var deptsgrpRouter = require('./routes/deptsgrp');
@@ -83,7 +84,8 @@ app.use(cors(corsOptions));
 
 //calling of routes
 app.use('/', indexRouter);
-app.use('/api/users', usersRouter);
+app.use('/api/users', authRouter);
+app.use('/api/request', requestRouter)
 // app.use('/api/authentication', authRouter);
 // app.use('/api/deptsgrp',deptsgrpRouter)
 // app.use('/api/headermaster',headerMasterRouter);
